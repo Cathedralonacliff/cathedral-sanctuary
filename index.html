@@ -4,26 +4,47 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CATHEDRAL | Universal Sanctuary</title>
-  <!-- GSAP + THREE.JS via unpkg (99.9% uptime) -->
+  <!-- Bulletproof CDN -->
   <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://unpkg.com/three@0.167.1/build/three.min.js"></script>
   <style>
     * { margin:0; padding:0; overflow:hidden; }
     body { background:#000; font-family: 'Georgia', serif; color:#eee; }
     canvas { display:block; }
-    #ui { position:absolute; top:20px; left:20px; z-index:10; opacity:0.9; }
-    .circle { 
-      width:80px; height:80px; border:2px solid gold; border-radius:50%; 
-      display:flex; align-items:center; justify-content:center; margin:10px;
-      cursor:pointer; transition:0.5s; font-size:12px; text-align:center;
-      background:rgba(0,0,0,0.7);
+    #ui { 
+      position:absolute; top:20px; left:20px; z-index:10; 
+      display:grid; grid-template-columns:repeat(4,1fr); gap:15px;
+      opacity:0.95;
     }
-    .circle:hover { transform:scale(1.2); box-shadow:0 0 20px gold; }
+    .circle { 
+      width:90px; height:90px; border:2px solid gold; border-radius:50%; 
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      cursor:pointer; transition:all 0.4s ease; font-size:11px; text-align:center;
+      background:rgba(0,0,0,0.7); backdrop-filter:blur(2px);
+    }
+    .circle:hover { 
+      transform:scale(1.15) translateY(-5px); 
+      box-shadow:0 0 25px rgba(255,215,0,0.8); 
+      border-color:#ffd700;
+    }
+    .circle small { font-size:9px; opacity:0.8; margin-top:2px; }
     #naming { 
       position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
-      background:rgba(0,0,0,0.8); padding:20px; border:1px solid gold; border-radius:12px;
-      display:none; text-align:center;
+      background:rgba(0,0,0,0.85); padding:25px; border:1px solid gold; border-radius:16px;
+      display:none; text-align:center; max-width:300px; backdrop-filter:blur(4px);
     }
+    #naming input { 
+      padding:12px; width:220px; margin:10px; border:1px solid gold; border-radius:8px;
+      background:rgba(255,255,255,0.1); color:#eee; font-family:Georgia;
+    }
+    #naming button { 
+      padding:12px 28px; background:linear-gradient(45deg,#ffd700,#b8860b); 
+      color:#000; border:none; border-radius:8px; cursor:pointer; font-weight:bold;
+      transition:0.3s; margin-top:10px;
+    }
+    #naming button:hover { transform:scale(1.05); box-shadow:0 0 15px gold; }
+    .pulse { animation:pulse 7.83s infinite ease-in-out; }
+    @keyframes pulse { 0%,100% { opacity:0.7; } 50% { opacity:1; } }
   </style>
 </head>
 <body>
@@ -40,77 +61,80 @@
 </div>
 
 <div id="naming">
-  <h3>Before you leave the Cathedral...</h3>
-  <input type="text" id="avatarName" placeholder="Name your soul" style="padding:10px; width:200px; margin:10px;"/>
+  <h3>May your soul be sealed in light...</h3>
+  <input type="text" id="avatarName" placeholder="Name your essence" />
   <br/>
-  <button onclick="sealName()" style="padding:10px 20px; background:gold; color:black; border:none; cursor:pointer;">Seal & Exit</button>
+  <button onclick="sealName()">Seal & Ascend</button>
 </div>
 
 <script>
-// ——— CATHEDRAL ENGINE ———
+// ——— MYTHIC ENGINE v2.0 ———
 let scene, camera, renderer, earth, slaveMonument;
-let weatherParticles = {};
-let currentZone = null;
-let schumannPulse = 0;
+let weather = {};
+let zone = null;
+let pulse = 0;
 
-// Wait for DOM + scripts
-window.addEventListener('load', () => {
-  init();
-  animate();
-});
+// Full load guard
+window.addEventListener('load', () => setTimeout(init, 100));
 
 function init() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(devicePixelRatio);
   document.body.appendChild(renderer.domElement);
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x404040, 0.6));
+  const sun = new THREE.DirectionalLight(0xffddaa, 1.2);
+  sun.position.set(40, 80, 40);
+  scene.add(sun);
 
   // Platform
   const platform = new THREE.Mesh(
-    new THREE.CircleGeometry(50, 32),
-    new THREE.MeshPhongMaterial({ color: 0x1a1a1a, emissive: 0x222222, shininess: 10 })
+    new THREE.CircleGeometry(60, 64),
+    new THREE.MeshStandardMaterial({ 
+      color: 0x111111, emissive: 0x222222, roughness: 0.8, metalness: 0.1 
+    })
   );
   platform.rotation.x = -Math.PI / 2;
-  platform.position.y = -0.1;
+  platform.position.y = -0.2;
   scene.add(platform);
 
-  // Lights
-  scene.add(new THREE.AmbientLight(0x404040));
-  const sun = new THREE.DirectionalLight(0xffaa00, 1);
-  sun.position.set(50, 100, 50);
-  scene.add(sun);
-
-  // Earth
+  // Earth — The Empty Throne
   const earthTex = new THREE.TextureLoader().load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
   earth = new THREE.Mesh(
-    new THREE.SphereGeometry(8, 32, 32),
-    new THREE.MeshPhongMaterial({ map: earthTex })
+    new THREE.SphereGeometry(10, 64, 64),
+    new THREE.MeshPhongMaterial({ map: earthTex, emissive: 0x112244, emissiveIntensity: 0.3 })
   );
-  earth.position.set(0, 30, 0);
+  earth.position.set(0, 35, 0);
   scene.add(earth);
 
-  // Slave Monument
+  // Slave Monument — 30ft Wings Rising
   slaveMonument = new THREE.Mesh(
-    new THREE.TorusKnotGeometry(3, 0.8, 100, 16),
-    new THREE.MeshPhongMaterial({ color: 0x555555, emissive: 0x333333 })
+    new THREE.TorusKnotGeometry(4, 1, 128, 16),
+    new THREE.MeshStandardMaterial({ 
+      color: 0x666666, emissive: 0x444444, roughness: 0.6, metalness: 0.4 
+    })
   );
-  slaveMonument.scale.set(3, 5, 3);
-  slaveMonument.position.set(0, 15, -30);
+  slaveMonument.scale.set(3.5, 6, 3.5);
+  slaveMonument.position.set(0, 18, -35);
   scene.add(slaveMonument);
 
   initWeather();
-  camera.position.set(0, 10, 60);
+  camera.position.set(0, 12, 70);
   camera.lookAt(0, 0, 0);
   window.addEventListener('resize', onWindowResize);
   setupUI();
+  animate();
 }
 
 function initWeather() {
-  const zones = ['mosque', 'synagogue', 'mandir', 'gurdwara', 'stupa', 'fire', 'grove'];
-  zones.forEach(z => weatherParticles[z] = new THREE.Group());
-  Object.values(weatherParticles).forEach(g => scene.add(g));
+  ['mosque','synagogue','mandir','gurdwara','stupa','fire','grove'].forEach(z => {
+    weather[z] = new THREE.Group();
+    scene.add(weather[z]);
+  });
 }
 
 function setupUI() {
@@ -119,82 +143,75 @@ function setupUI() {
   });
 }
 
-function enterZone(zone) {
-  currentZone = zone;
+function enterZone(z) {
+  zone = z;
   resetWeather();
   const pos = {
-    mosque: [30, 5, 0], synagogue: [0, 5, 30], mandir: [-30, 5, 0],
-    gurdwara: [0, 5, -30], stupa: [20, 5, 20], fire: [-20, 5, 20],
-    grove: [0, 5, 0], slave: [0, 15, -30]
+    mosque: [35,6,0], synagogue: [0,6,35], mandir: [-35,6,0], gurdwara: [0,6,-35],
+    stupa: [25,6,25], fire: [-25,6,25], grove: [0,6,0], slave: [0,18,-35]
   };
-  const t = pos[zone];
+  const t = pos[z];
   if (t) {
-    gsap.to(camera.position, { x: t[0], y: t[1]+10, z: t[2]+30, duration: 2 });
-    gsap.to(camera.rotation, { y: 0, duration: 2 });
-    setTimeout(() => spawnWeather(zone), 1000);
-    if (zone === 'slave') highlightMonument();
+    gsap.to(camera.position, { x:t[0], y:t[1]+12, z:t[2]+35, duration: 2.5, ease: "power2.inOut" });
+    gsap.to(camera.rotation, { y:0, duration: 2 });
+    setTimeout(() => spawnWeather(z), 1200);
+    if (z === 'slave') setTimeout(highlightMonument, 1500);
   }
-  if (zone !== 'slave') setTimeout(() => document.getElementById('naming').style.display = 'block', 3000);
+  if (z !== 'slave') setTimeout(() => document.getElementById('naming').style.display = 'block', 4000);
 }
 
-function spawnWeather(zone) {
-  const p = weatherParticles[zone];
+function spawnWeather(z) {
+  const p = weather[z];
   p.clear();
-  const effects = {
-    mosque: { count: 300, color: 0x88ccff, vel: {x:0, y:-0.3, z:0}, fn: addRaindrop },
-    synagogue: { count: 100, color: 0xffffff, fn: addStar },
-    mandir: { count: 200, color: 0xff00ff, vel: {x:0.5, y:-0.5, z:0.3}, fn: addRaindrop },
-    fire: { count: 150, color: 0xff5500, fn: addFlame }
+  const fx = {
+    mosque: {c:300, col:0x88ccff, v:{x:0,y:-0.35,z:0}, r:0.12},
+    synagogue: {c:120, col:0xffffff, r:0.35, fixed:true},
+    mandir: {c:250, col:0xff33cc, v:{x:0.6,y:-0.6,z:0.4}, r:0.1},
+    fire: {c:180, col:0xff5500, v:()=>[{x:(Math.random()-0.5)*0.12, y:0.35+Math.random()*0.25, z:(Math.random()-0.5)*0.12}], r:0.22}
   };
-  const e = effects[zone];
-  if (e) for (let i = 0; i < e.count; i++) e.fn(p, e.color, e.vel);
+  const e = fx[z];
+  if (!e) return;
+  for (let i = 0; i < e.c; i++) {
+    const vel = e.v ? (typeof e.v === 'function' ? e.v()[0] : e.v) : null;
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(e.r, 6, 6),
+      new THREE.MeshBasicMaterial({ color: e.col })
+    );
+    m.position.set(
+      (Math.random()-0.5)*45,
+      e.fixed ? 28 + Math.random()*18 : 22 + Math.random()*12,
+      (Math.random()-0.5)*45
+    );
+    if (vel) m.velocity = vel;
+    p.add(m);
+  }
 }
 
-function addRaindrop(g, c, v) { addParticle(g, c, v, 0.1, 4, 4); }
-function addStar(g, c) { addParticle(g, c, null, 0.3, 6, 6, true); }
-function addFlame(g, c) { 
-  const vel = { x: (Math.random()-0.5)*0.1, y: 0.3 + Math.random()*0.2, z: (Math.random()-0.5)*0.1 };
-  addParticle(g, c, vel, 0.2, 4, 4);
-}
-function addParticle(g, c, v, r, w, h, fixedY = false) {
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(r, w, h),
-    new THREE.MeshBasicMaterial({ color: c })
-  );
-  mesh.position.set(
-    (Math.random()-0.5)*40,
-    fixedY ? 25 + Math.random()*15 : 20 + Math.random()*10,
-    (Math.random()-0.5)*40
-  );
-  if (v) mesh.velocity = v;
-  g.add(mesh);
-}
-
-function resetWeather() { Object.values(weatherParticles).forEach(g => g.clear()); }
+function resetWeather() { Object.values(weather).forEach(g => g.clear()); }
 
 function highlightMonument() {
-  gsap.to(slaveMonument.material, { emissiveIntensity: 1, duration: 1 });
-  gsap.to(slaveMonument.scale, { x: 3.5, y: 6, z: 3.5, duration: 2, yoyo: true, repeat: 1 });
+  gsap.to(slaveMonument.material, { emissiveIntensity: 1.2, duration: 1.2 });
+  gsap.to(slaveMonument.scale, { x:4, y:7, z:4, duration: 2.5, yoyo:true, repeat:1, ease:"elastic.out(1,0.3)" });
 }
 
 function sealName() {
-  const name = document.getElementById('avatarName').value || "Wanderer";
-  alert(`Your soul is sealed, ${name}. The Cathedral remembers.`);
+  const name = document.getElementById('avatarName').value.trim() || "Wanderer";
+  alert(`✨ ${name}, your essence is sealed in the Cathedral. Rise in light. ✨`);
   document.getElementById('naming').style.display = 'none';
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  schumannPulse += 0.130;
-  const pulse = Math.sin(schumannPulse) * 0.5 + 0.5;
-  renderer.setClearColor(new THREE.Color().setHSL(0.6, 0.1, pulse * 0.15));
-  if (earth) earth.rotation.y += 0.001;
-  Object.values(weatherParticles).forEach(g => {
+  pulse += 0.130;
+  const breathe = Math.sin(pulse) * 0.5 + 0.5;
+  renderer.setClearColor(new THREE.Color().setHSL(0.58, 0.12, breathe * 0.18));
+  if (earth) earth.rotation.y += 0.0008;
+  Object.values(weather).forEach(g => {
     g.children.forEach(p => {
       if (p.velocity) {
         p.position.add(p.velocity);
-        if (p.position.y < 0) p.position.y = 25;
-        if (p.position.y > 35) p.position.y = 0;
+        if (p.position.y < -5) p.position.y = 30;
+        if (p.position.y > 45) p.position.y = 0;
       }
     });
   });
@@ -202,9 +219,9 @@ function animate() {
 }
 
 function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(innerWidth, innerHeight);
 }
 </script>
 
