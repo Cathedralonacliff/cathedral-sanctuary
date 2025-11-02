@@ -3,249 +3,102 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CATHEDRAL | Universal Sanctuary</title>
-  <!-- GSAP -->
-  <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
-  <!-- THREE.JS -->
-  <script src="https://unpkg.com/three@0.167.1/build/three.min.js"></script>
+  <title>CATHEDRAL | First Breath</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js"></script>
   <style>
     * { margin:0; padding:0; overflow:hidden; }
     body { background:#000; font-family: 'Georgia', serif; color:#eee; }
     canvas { display:block; }
-    #ui { 
-      position:absolute; top:20px; left:20px; z-index:10; 
-      display:grid; grid-template-columns:repeat(4,1fr); gap:15px;
-      opacity:0.95;
-    }
+    #ui { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10; }
     .circle { 
-      width:90px; height:90px; border:2px solid gold; border-radius:50%; 
+      width:120px; height:120px; border:3px solid gold; border-radius:50%; 
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      cursor:pointer; transition:all 0.4s ease; font-size:11px; text-align:center;
-      background:rgba(0,0,0,0.7); backdrop-filter:blur(2px);
+      cursor:pointer; font-size:14px; text-align:center;
+      background:rgba(0,0,0,0.7); backdrop-filter:blur(4px);
+      transition:0.4s;
     }
-    .circle:hover { 
-      transform:scale(1.15) translateY(-5px); 
-      box-shadow:0 0 25px rgba(255,215,0,0.8); 
-      border-color:#ffd700;
-    }
-    .circle small { font-size:9px; opacity:0.8; margin-top:2px; }
+    .circle:hover { transform:scale(1.2); box-shadow:0 0 30px gold; }
     #naming { 
-      position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
-      background:rgba(0,0,0,0.85); padding:25px; border:1px solid gold; border-radius:16px;
-      display:none; text-align:center; max-width:300px; backdrop-filter:blur(4px);
+      position:absolute; bottom:40px; left:50%; transform:translateX(-50%);
+      background:rgba(0,0,0,0.9); padding:20px; border:1px solid gold; border-radius:12px;
+      display:none; text-align:center; max-width:280px;
     }
-    #naming input { 
-      padding:12px; width:220px; margin:10px; border:1px solid gold; border-radius:8px;
-      background:rgba(255,255,255,0.1); color:#eee; font-family:Georgia;
-    }
-    #naming button { 
-      padding:12px 28px; background:linear-gradient(45deg,#ffd700,#b8860b); 
-      color:#000; border:none; border-radius:8px; cursor:pointer; font-weight:bold;
-      transition:0.3s; margin-top:10px;
-    }
-    #naming button:hover { transform:scale(1.05); box-shadow:0 0 15px gold; }
-    .pulse { animation:pulse 7.83s infinite ease-in-out; }
-    @keyframes pulse { 0%,100% { opacity:0.7; } 50% { opacity:1; } }
+    #naming input { padding:10px; width:200px; margin:8px; border:1px solid gold; border-radius:6px; background:rgba(255,255,255,0.1); color:#eee; }
+    #naming button { padding:10px 24px; background:gold; color:black; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
   </style>
 </head>
 <body>
 
 <div id="ui">
   <div class="circle" data-zone="mosque">Mosque<br><small>Crescent Rain</small></div>
-  <div class="circle" data-zone="synagogue">Synagogue<br><small>Starlit Clarity</small></div>
-  <div class="circle" data-zone="mandir">Mandir<br><small>Monsoon Pulse</small></div>
-  <div class="circle" data-zone="gurdwara">Gurdwara<br><small>Harvest Sun</small></div>
-  <div class="circle" data-zone="stupa">Stupa<br><small>Meditative Mist</small></div>
-  <div class="circle" data-zone="fire">Fire Circle<br><small>Aurora Crackle</small></div>
-  <div class="circle" data-zone="grove">Atheist Grove<br><small>Endless Blue</small></div>
-  <div class="circle" data-zone="slave">Slave Monument<br><small>30ft Wings</small></div>
 </div>
 
 <div id="naming">
-  <h3>May your soul be sealed in light...</h3>
-  <input type="text" id="avatarName" placeholder="Name your essence" />
+  <h3>Name your soul...</h3>
+  <input type="text" id="avatarName" placeholder="Who are you?" />
   <br/>
-  <button onclick="sealName()">Seal & Ascend</button>
+  <button onclick="sealName()">Seal & Rise</button>
 </div>
 
 <script>
-// ——— MYTHIC ENGINE v2.1 — HEART GUARDED ———
-console.log('Cathedral loading...');
-let scene, camera, renderer, earth, slaveMonument;
-let weather = {};
-let zone = null;
-let pulse = 0;
+let scene, camera, renderer, rain = [];
+const ZONE = 'mosque';
 
 function init() {
-  console.log('THREE:', typeof THREE);
-  console.log('GSAP:', typeof gsap);
-  if (typeof THREE === 'undefined') {
-    console.error('THREE not loaded');
-    return;
-  }
-  if (typeof gsap === 'undefined') {
-    console.error('GSAP not loaded');
-    return;
-  }
-  console.log('Engine starting...');
-
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(devicePixelRatio);
   document.body.appendChild(renderer.domElement);
 
-  // Lights
-  scene.add(new THREE.AmbientLight(0x404040, 0.6));
-  const sun = new THREE.DirectionalLight(0xffddaa, 1.2);
-  sun.position.set(40, 80, 40);
-  scene.add(sun);
+  scene.add(new THREE.AmbientLight(0x404040));
+  const light = new THREE.DirectionalLight(0x88ccff, 1);
+  light.position.set(20, 40, 20);
+  scene.add(light);
 
-  // Platform
-  const platform = new THREE.Mesh(
-    new THREE.CircleGeometry(60, 64),
-    new THREE.MeshStandardMaterial({ 
-      color: 0x111111, emissive: 0x222222, roughness: 0.8, metalness: 0.1 
-    })
-  );
-  platform.rotation.x = -Math.PI / 2;
-  platform.position.y = -0.2;
-  scene.add(platform);
+  camera.position.z = 80;
 
-  // Earth — The Empty Throne
-  const loader = new THREE.TextureLoader();
-  loader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (tex) => {
-    earth = new THREE.Mesh(
-      new THREE.SphereGeometry(10, 64, 64),
-      new THREE.MeshPhongMaterial({ map: tex, emissive: 0x112244, emissiveIntensity: 0.3 })
+  // Rain
+  for (let i = 0; i < 200; i++) {
+    const drop = new THREE.Mesh(
+      new THREE.SphereGeometry(0.15, 4, 4),
+      new THREE.MeshBasicMaterial({ color: 0x88ccff })
     );
-    earth.position.set(0, 35, 0);
-    scene.add(earth);
-    console.log('Earth loaded');
-  }, undefined, (err) => console.error('Earth texture error', err));
+    drop.position.set(
+      (Math.random()-0.5)*60,
+      30 + Math.random()*20,
+      (Math.random()-0.5)*60
+    );
+    drop.velocity = { x: 0, y: -0.4, z: 0 };
+    rain.push(drop);
+    scene.add(drop);
+  }
 
-  // Slave Monument — 30ft Wings Rising
-  slaveMonument = new THREE.Mesh(
-    new THREE.TorusKnotGeometry(4, 1, 128, 16),
-    new THREE.MeshStandardMaterial({ 
-      color: 0x666666, emissive: 0x444444, roughness: 0.6, metalness: 0.4 
-    })
-  );
-  slaveMonument.scale.set(3.5, 6, 3.5);
-  slaveMonument.position.set(0, 18, -35);
-  scene.add(slaveMonument);
+  document.querySelector('.circle').addEventListener('click', () => {
+    gsap.to(camera.position, { z: 40, duration: 2 });
+    setTimeout(() => document.getElementById('naming').style.display = 'block', 2000);
+  });
 
-  initWeather();
-  camera.position.set(0, 12, 70);
-  camera.lookAt(0, 0, 0);
-  window.addEventListener('resize', onWindowResize);
-  setupUI();
   animate();
-  console.log('Engine running');
-}
-
-function initWeather() {
-  ['mosque','synagogue','mandir','gurdwara','stupa','fire','grove'].forEach(z => {
-    weather[z] = new THREE.Group();
-    scene.add(weather[z]);
-  });
-}
-
-function setupUI() {
-  document.querySelectorAll('.circle').forEach(el => {
-    el.addEventListener('click', () => enterZone(el.dataset.zone));
-  });
-}
-
-function enterZone(z) {
-  zone = z;
-  resetWeather();
-  const pos = {
-    mosque: [35,6,0], synagogue: [0,6,35], mandir: [-35,6,0], gurdwara: [0,6,-35],
-    stupa: [25,6,25], fire: [-25,6,25], grove: [0,6,0], slave: [0,18,-35]
-  };
-  const t = pos[z];
-  if (t) {
-    gsap.to(camera.position, { x:t[0], y:t[1]+12, z:t[2]+35, duration: 2.5, ease: "power2.inOut" });
-    gsap.to(camera.rotation, { y:0, duration: 2 });
-    setTimeout(() => spawnWeather(z), 1200);
-    if (z === 'slave') setTimeout(highlightMonument, 1500);
-  }
-  if (z !== 'slave') setTimeout(() => document.getElementById('naming').style.display = 'block', 4000);
-}
-
-function spawnWeather(z) {
-  const p = weather[z];
-  p.clear();
-  const fx = {
-    mosque: {c:300, col:0x88ccff, v:{x:0,y:-0.35,z:0}, r:0.12},
-    synagogue: {c:120, col:0xffffff, r:0.35, fixed:true},
-    mandir: {c:250, col:0xff33cc, v:{x:0.6,y:-0.6,z:0.4}, r:0.1},
-    fire: {c:180, col:0xff5500, v:()=>[{x:(Math.random()-0.5)*0.12, y:0.35+Math.random()*0.25, z:(Math.random()-0.5)*0.12}], r:0.22}
-  };
-  const e = fx[z];
-  if (!e) return;
-  for (let i = 0; i < e.c; i++) {
-    const vel = e.v ? (typeof e.v === 'function' ? e.v()[0] : e.v) : null;
-    const m = new THREE.Mesh(
-      new THREE.SphereGeometry(e.r, 6, 6),
-      new THREE.MeshBasicMaterial({ color: e.col })
-    );
-    m.position.set(
-      (Math.random()-0.5)*45,
-      e.fixed ? 28 + Math.random()*18 : 22 + Math.random()*12,
-      (Math.random()-0.5)*45
-    );
-    if (vel) m.velocity = vel;
-    p.add(m);
-  }
-}
-
-function resetWeather() { Object.values(weather).forEach(g => g.clear()); }
-
-function highlightMonument() {
-  gsap.to(slaveMonument.material, { emissiveIntensity: 1.2, duration: 1.2 });
-  gsap.to(slaveMonument.scale, { x:4, y:7, z:4, duration: 2.5, yoyo:true, repeat:1, ease:"elastic.out(1,0.3)" });
-}
-
-function sealName() {
-  const name = document.getElementById('avatarName').value.trim() || "Wanderer";
-  alert(`✨ ${name}, your essence is sealed in the Cathedral. Rise in light. ✨`);
-  document.getElementById('naming').style.display = 'none';
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  pulse += 0.130;
-  const breathe = Math.sin(pulse) * 0.5 + 0.5;
-  renderer.setClearColor(new THREE.Color().setHSL(0.58, 0.12, breathe * 0.18));
-  if (earth) earth.rotation.y += 0.0008;
-  Object.values(weather).forEach(g => {
-    g.children.forEach(p => {
-      if (p.velocity) {
-        p.position.add(p.velocity);
-        if (p.position.y < -5) p.position.y = 30;
-        if (p.position.y > 45) p.position.y = 0;
-      }
-    });
+  rain.forEach(d => {
+    d.position.add(d.velocity);
+    if (d.position.y < -10) d.position.y = 40;
   });
   renderer.render(scene, camera);
 }
 
-function onWindowResize() {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+function sealName() {
+  const name = document.getElementById('avatarName').value || "Wanderer";
+  alert(`✨ ${name}, you are sealed in the first breath. ✨`);
+  document.getElementById('naming').style.display = 'none';
 }
 
-// Load guard + init
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => setTimeout(init, 500));
-} else {
-  setTimeout(init, 500);
-}
-console.log('Load guard set');
+window.onload = init;
 </script>
 
 </body>
