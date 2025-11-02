@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CATHEDRAL | Universal Sanctuary</title>
-  <!-- Bulletproof CDN -->
+  <!-- GSAP -->
   <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+  <!-- THREE.JS -->
   <script src="https://unpkg.com/three@0.167.1/build/three.min.js"></script>
   <style>
     * { margin:0; padding:0; overflow:hidden; }
@@ -68,16 +69,26 @@
 </div>
 
 <script>
-// ——— MYTHIC ENGINE v2.0 ———
+// ——— MYTHIC ENGINE v2.1 — HEART GUARDED ———
+console.log('Cathedral loading...');
 let scene, camera, renderer, earth, slaveMonument;
 let weather = {};
 let zone = null;
 let pulse = 0;
 
-// Full load guard
-window.addEventListener('load', () => setTimeout(init, 100));
-
 function init() {
+  console.log('THREE:', typeof THREE);
+  console.log('GSAP:', typeof gsap);
+  if (typeof THREE === 'undefined') {
+    console.error('THREE not loaded');
+    return;
+  }
+  if (typeof gsap === 'undefined') {
+    console.error('GSAP not loaded');
+    return;
+  }
+  console.log('Engine starting...');
+
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -103,13 +114,16 @@ function init() {
   scene.add(platform);
 
   // Earth — The Empty Throne
-  const earthTex = new THREE.TextureLoader().load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
-  earth = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 64, 64),
-    new THREE.MeshPhongMaterial({ map: earthTex, emissive: 0x112244, emissiveIntensity: 0.3 })
-  );
-  earth.position.set(0, 35, 0);
-  scene.add(earth);
+  const loader = new THREE.TextureLoader();
+  loader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (tex) => {
+    earth = new THREE.Mesh(
+      new THREE.SphereGeometry(10, 64, 64),
+      new THREE.MeshPhongMaterial({ map: tex, emissive: 0x112244, emissiveIntensity: 0.3 })
+    );
+    earth.position.set(0, 35, 0);
+    scene.add(earth);
+    console.log('Earth loaded');
+  }, undefined, (err) => console.error('Earth texture error', err));
 
   // Slave Monument — 30ft Wings Rising
   slaveMonument = new THREE.Mesh(
@@ -128,6 +142,7 @@ function init() {
   window.addEventListener('resize', onWindowResize);
   setupUI();
   animate();
+  console.log('Engine running');
 }
 
 function initWeather() {
@@ -223,6 +238,14 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 }
+
+// Load guard + init
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(init, 500));
+} else {
+  setTimeout(init, 500);
+}
+console.log('Load guard set');
 </script>
 
 </body>
