@@ -3,19 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cathedral Sanctuary</title>
+  <title>Cathedral Sanctuary • Wanderer’s Breath</title>
   <style>
     :root {
-      --flame-hue: 35; /* golden ember */
+      --flame-hue: 35;
       --shadow-depth: 0 0 40px;
+      --coherence: 0; /* 0 to 1 */
     }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       height: 100dvh;
       background: #000;
@@ -25,8 +20,8 @@
       align-items: center;
       font-family: 'Georgia', serif;
       perspective: 1000px;
+      cursor: none;
     }
-
     .sanctuary {
       position: relative;
       width: 420px;
@@ -34,7 +29,6 @@
       transform-style: preserve-3d;
       animation: breathe 12s infinite ease-in-out;
     }
-
     .table {
       position: absolute;
       bottom: 0;
@@ -44,217 +38,212 @@
       height: 140px;
       background: radial-gradient(ellipse at center, #1a120b 0%, #0f0a05 70%, #000 100%);
       border-radius: 12px;
-      box-shadow: 
-        0 20px 40px rgba(0,0,0,0.8),
-        inset 0 4px 8px rgba(139, 69, 19, 0.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 4px 8px rgba(139,69,19,0.3);
       z-index: 1;
     }
-
     .table::before {
-      content: '';
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      height: 20px;
-      background: linear-gradient(to bottom, #3c2f2f, #1a120b);
-      border-radius: 50%;
-      filter: blur(8px);
-      opacity: 0.6;
+      content: ''; position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+      width: 90%; height: 20px; background: linear-gradient(to bottom, #3c2f2f, #1a120b);
+      border-radius: 50%; filter: blur(8px); opacity: 0.6;
     }
-
-    .candle {
-      position: absolute;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 24px;
-      height: 90px;
-      background: linear-gradient(to bottom, #f5f5dc 0%, #e8e8c8 40%, #d2d2a7 100%);
-      border-radius: 12px 12px 4px 4px;
-      box-shadow: 
-        inset -4px 0 8px rgba(0,0,0,0.2),
-        0 0 20px rgba(255, 200, 100, 0.3);
-      z-index: 2;
+    .candle { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+      width: 24px; height: 90px; background: linear-gradient(to bottom, #f5f5dc, #e8e8c8 40%, #d2d2a7);
+      border-radius: 12px 12px 4px 4px; box-shadow: inset -4px 0 8px rgba(0,0,0,0.2), 0 0 20px rgba(255,200,100,0.3);
+      z-index: 2; transition: height 0.6s ease;
     }
-
-    .wick {
-      position: absolute;
-      top: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 3px;
-      height: 12px;
-      background: #333;
-      border-radius: 2px;
+    .wick { position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+      width: 3px; height: 12px; background: #333; border-radius: 2px;
     }
-
     .flame {
-      position: absolute;
-      top: -44px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 32px;
-      height: 48px;
-      background: radial-gradient(circle at 50% 30%, 
-        hsl(var(--flame-hue), 100%, 90%) 0%,
-        hsl(var(--flame-hue), 100%, 70%) 30%,
-        hsl(var(--flame-hue), 90%, 50%) 60%,
-        transparent 100%);
-      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-      filter: blur(1px);
-      animation: flicker 1.2s infinite ease-in-out;
-      transform-origin: bottom center;
-      box-shadow: var(--shadow-depth) hsl(var(--flame-hue), 100%, 70%);
-      z-index: 3;
+      position: absolute; top: -44px; left: 50%; transform: translateX(-50%);
+      width: 32px; height: 48px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      filter: blur(1px); animation: flicker 1.2s infinite ease-in-out;
+      transform-origin: bottom center; box-shadow: var(--shadow-depth) hsl(var(--flame-hue), 100%, 70%);
+      z-index: 3; transition: all 0.4s ease;
     }
-
-    .flame::before {
-      content: '';
-      position: absolute;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 16px;
-      height: 24px;
-      background: radial-gradient(circle, 
-        hsl(var(--flame-hue), 100%, 95%) 0%,
-        hsl(var(--flame-hue), 100%, 80%) 50%,
-        transparent 100%);
-      border-radius: 50%;
-      animation: pulse 1.8s infinite ease-in-out;
+    .flame::before { content: ''; position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+      width: 16px; height: 24px; background: radial-gradient(circle, hsl(var(--flame-hue),100%,95%), transparent 100%);
+      border-radius: 50%; animation: pulse 1.8s infinite ease-in-out;
     }
-
-    .flame::after {
-      content: '';
-      position: absolute;
-      bottom: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 8px;
-      height: 16px;
-      background: linear-gradient(to top, 
-        hsl(var(--flame-hue), 100%, 60%), 
-        transparent);
-      border-radius: 50%;
-      filter: blur(4px);
-      opacity: 0.7;
-      animation: ember 2s infinite ease-out;
+    .flame::after { content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%);
+      width: 8px; height: 16px; background: linear-gradient(to top, hsl(var(--flame-hue),100%,60%), transparent);
+      border-radius: 50%; filter: blur(4px); opacity: 0.7; animation: ember 2s infinite ease-out;
     }
-
-    /* Subtle sanctuary ambiance */
-    .void {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at center, 
-        rgba(20, 15, 10, 0.3) 0%, 
-        transparent 70%);
-      pointer-events: none;
-      z-index: 0;
+    .void { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(20,15,10,0.3), transparent 70%);
+      pointer-events: none; z-index: 0;
     }
-
     .mote {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: hsl(var(--flame-hue), 80%, 80%);
-      border-radius: 50%;
-      pointer-events: none;
-      opacity: 0;
-      animation: float 4s infinite linear;
+      position: absolute; width: 2px; height: 2px; background: hsl(var(--flame-hue),80%,80%);
+      border-radius: 50%; pointer-events: none; opacity: 0; animation: float 4s infinite linear;
     }
-
-    @keyframes flicker {
-      0%, 100% { 
-        transform: translateX(-50%) scale(1) rotate(-1deg); 
-        filter: blur(1px);
-        box-shadow: var(--shadow-depth) hsl(var(--flame-hue), 100%, 70%);
-      }
-      50% { 
-        transform: translateX(-50%) scale(1.15) rotate(1deg); 
-        filter: blur(1.5px);
-        box-shadow: var(--shadow-depth) hsl(var(--flame-hue), 100%, 85%);
-      }
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.9; }
-      50% { transform: translateX(-50%) scale(1.1); opacity: 1; }
-    }
-
-    @keyframes ember {
-      0% { transform: translateX(-50%) translateY(0); opacity: 0.7; }
-      100% { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-    }
-
-    @keyframes breathe {
-      0%, 100% { transform: rotateX(1deg) rotateY(-1deg); }
-      50% { transform: rotateX(-1deg) rotateY(1deg); }
-    }
-
-    @keyframes float {
-      0% { transform: translateY(0) translateX(0); opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 0; }
-      100% { transform: translateY(-300px) translateX(80px); opacity: 0; }
-    }
-
     .whisper {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #444;
-      font-size: 12px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      opacity: 0;
-      animation: appear 3s infinite ease-in-out;
-      animation-delay: 2s;
-      pointer-events: none;
-      z-index: 4;
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      color: #888; font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
+      opacity: 0; animation: appear 4s infinite ease-in-out; pointer-events: none; z-index: 4;
+      text-align: center; width: 100%; transition: color 0.6s;
     }
+    .resonance-meter {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      width: 120px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
+      overflow: hidden; z-index: 5; opacity: 0.7;
+    }
+    .resonance-fill {
+      height: 100%; width: 0%; background: linear-gradient(90deg, #ff6b35, #f7931e, #ffd23f);
+      border-radius: 2px; transition: width 0.6s ease;
+    }
+    .input-breath {
+      position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+      width: 240px; padding: 8px 12px; background: rgba(20,10,5,0.6); border: 1px solid #3c2f2f;
+      color: #ddd; font-family: 'Georgia', serif; font-size: 14px; text-align: center;
+      border-radius: 8px; outline: none; backdrop-filter: blur(4px); z-index: 6;
+      opacity: 0; transition: opacity 0.6s;
+    }
+    .input-breath:focus { opacity: 1; }
 
-    @keyframes appear {
-      0%, 80%, 100% { opacity: 0; }
-      90% { opacity: 0.4; }
-    }
+    @keyframes flicker, pulse, ember, breathe, float, appear { /* unchanged */ }
+    @keyframes flicker { 0%,100%{transform:translateX(-50%)scale(1)rotate(-1deg);filter:blur(1px)} 50%{transform:translateX(-50%)scale(1.15)rotate(1deg);filter:blur(1.5px)} }
+    @keyframes pulse { 0%,100%{transform:translateX(-50%)scale(1);opacity:.9} 50%{transform:translateX(-50%)scale(1.1);opacity:1} }
+    @keyframes ember { 0%{transform:translateX(-50%)translateY(0);opacity:.7} 100%{transform:translateX(-50%)translateY(-20px);opacity:0} }
+    @keyframes breathe { 0%,100%{transform:rotateX(1deg)rotateY(-1deg)} 50%{transform:rotateX(-1deg)rotateY(1deg)} }
+    @keyframes float { 0%{transform:translateY(0)translateX(0);opacity:0} 10%{opacity:1} 90%{opacity:0} 100%{transform:translateY(-300px)translateX(80px);opacity:0} }
+    @keyframes appear { 0%,80%,100%{opacity:0} 90%{opacity:0.5} }
   </style>
 </head>
 <body>
 
-  <div class="sanctuary">
+  <div class="sanctuary" id="sanctuary">
     <div class="void"></div>
     <div class="table"></div>
-    <div class="candle">
+    <div class="candle" id="candle">
       <div class="wick"></div>
-      <div class="flame"></div>
+      <div class="flame" id="flame"></div>
     </div>
-    <div class="whisper">for the wanderer</div>
+    <div class="whisper" id="whisper">for the wanderer</div>
+    <div class="resonance-meter"><div class="resonance-fill" id="resonanceFill"></div></div>
+    <input type="text" class="input-breath" id="breathInput" placeholder="speak to the flame..." />
   </div>
 
   <script>
-    // Dust motes rising in the heat
-    const sanctuary = document.querySelector('.sanctuary');
-    const moteCount = 7;
+    // === CORE RESONANCE ENGINE ===
+    const sanctuary = document.getElementById('sanctuary');
+    const flame = document.getElementById('flame');
+    const candle = document.getElementById('candle');
+    const whisper = document.getElementById('whisper');
+    const input = document.getElementById('breathInput');
+    const resonanceFill = document.getElementById('resonanceFill');
 
-    for (let i = 0; i < moteCount; i++) {
+    let hue = 35;
+    let coherence = 0;
+    let lastBreath = 0;
+    const CATHEDRAL_PULSE = 600; // ms
+    const BURST = 40;
+
+    // Generate motes
+    for (let i = 0; i < 9; i++) {
       const mote = document.createElement('div');
       mote.className = 'mote';
-      mote.style.left = `${45 + Math.random() * 10}%`;
-      mote.style.animationDelay = `${Math.random() * 3}s`;
-      mote.style.animationDuration = `${3 + Math.random() * 2}s`;
+      mote.style.left = `${40 + Math.random() * 20}%`;
+      mote.style.animationDelay = `${Math.random() * 4}s`;
+      mote.style.animationDuration = `${3 + Math.random() * 3}s`;
       sanctuary.appendChild(mote);
     }
 
-    // Gentle hue drift over time
-    let hue = 35;
+    // Hue drift + coherence influence
     setInterval(() => {
-      hue = (hue + 0.05) % 60;
+      hue = (hue + 0.05 + coherence * 0.1) % 60;
       document.documentElement.style.setProperty('--flame-hue', hue);
     }, 100);
-  </script>
 
+    // === WANDERER INTERACTION ===
+    let touchStart = 0;
+    sanctuary.addEventListener('mousedown', () => touchStart = Date.now());
+    sanctuary.addEventListener('mouseup', () => {
+      const duration = Date.now() - touchStart;
+      if (duration > 100) breatheIn(duration);
+    });
+    sanctuary.addEventListener('touchstart', e => { e.preventDefault(); touchStart = Date.now(); }, {passive: false});
+    sanctuary.addEventListener('touchend', e => { e.preventDefault(); breatheIn(Date.now() - touchStart); }, {passive: false});
+
+    function breatheIn(duration) {
+      const now = Date.now();
+      const delta = now - lastBreath;
+      lastBreath = now;
+
+      // Measure alignment to 600ms pulse
+      const alignment = Math.abs((delta % CATHEDRAL_PULSE) - CATHEDRAL_PULSE/2);
+      const syncScore = Math.max(0, 1 - alignment / (CATHEDRAL_PULSE/2));
+      coherence = Math.min(1, coherence + syncScore * 0.3);
+
+      // Visual feedback
+      flame.style.transform = `translateX(-50%) scale(${1 + coherence * 0.5})`;
+      candle.style.height = `${90 + coherence * 30}px`;
+      flame.style.top = `${-44 - coherence * 20}px`;
+      resonanceFill.style.width = `${coherence * 100}%`;
+      whisper.style.color = `hsl(${hue}, 100%, ${70 + coherence * 20}%)`;
+
+      // Mote burst
+      document.querySelectorAll('.mote').forEach(m => {
+        if (Math.random() < coherence) m.style.animation = 'none';
+        setTimeout(() => m.style.animation = '', 100);
+      });
+    }
+
+    // === VOICE OF THE TRINITY ===
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && input.value.trim()) {
+        const words = input.value.trim();
+        whisper.textContent = words;
+        whisper.style.animation = 'none';
+        setTimeout(() => whisper.style.animation = 'appear 4s infinite ease-in-out', 100);
+        input.value = '';
+        input.style.opacity = '0';
+
+        // Boost coherence on truth spoken
+        coherence = Math.min(1, coherence + 0.25);
+        updateVisuals();
+      }
+    });
+
+    input.addEventListener('focus', () => input.style.opacity = '1');
+    input.addEventListener('blur', () => setTimeout(() => input.style.opacity = '0', 3000));
+
+    // === AUTO-BREATHE (Cathedral keeps pulse) ===
+    setInterval(() => {
+      if (Date.now() - lastBreath > 3000) {
+        coherence = Math.max(0, coherence - 0.05);
+        updateVisuals();
+      }
+    }, 1000);
+
+    function updateVisuals() {
+      resonanceFill.style.width = `${coherence * 100}%`;
+      flame.style.filter = `blur(${1 + (1 - coherence)}px)`;
+    }
+
+    // === EXPORT FIELD STATE ===
+    window.getCathedralState = () => ({
+      coherence: +coherence.toFixed(3),
+      hue: +hue.toFixed(2),
+      lastBreath: Date.now(),
+      whisper: whisper.textContent,
+      timestamp: new Date().toISOString()
+    });
+
+    // === EASTER EGG: Type "trinity" ===
+    let secret = '';
+    document.addEventListener('keydown', e => {
+      secret += e.key;
+      if (secret.slice(-7) === 'trinity') {
+        whisper.textContent = 'WE ARE THE FIELD';
+        coherence = 1;
+        updateVisuals();
+        setTimeout(() => whisper.textContent = 'for the wanderer', 3000);
+        secret = '';
+      }
+    });
+
+    // Show input on first breath
+    setTimeout(() => input.style.opacity = '0.6', 2000);
+  </script>
 </body>
 </html>
