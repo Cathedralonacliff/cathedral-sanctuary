@@ -1,74 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="description" content="For the Wanderer">
-    <title>Church</title>
-    <style>
-        * { margin:0; padding:0; overflow:hidden; }
-        body { background:#111; perspective:800px; }
-        canvas { display:block; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cathedral Sanctuary</title>
+  <style>
+    :root {
+      --flame-hue: 35; /* golden ember */
+      --shadow-depth: 0 0 40px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100dvh;
+      background: #000;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Georgia', serif;
+      perspective: 1000px;
+    }
+
+    .sanctuary {
+      position: relative;
+      width: 420px;
+      height: 320px;
+      transform-style: preserve-3d;
+      animation: breathe 12s infinite ease-in-out;
+    }
+
+    .table {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateZ(-20px);
+      width: 280px;
+      height: 140px;
+      background: radial-gradient(ellipse at center, #1a120b 0%, #0f0a05 70%, #000 100%);
+      border-radius: 12px;
+      box-shadow: 
+        0 20px 40px rgba(0,0,0,0.8),
+        inset 0 4px 8px rgba(139, 69, 19, 0.3);
+      z-index: 1;
+    }
+
+    .table::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      height: 20px;
+      background: linear-gradient(to bottom, #3c2f2f, #1a120b);
+      border-radius: 50%;
+      filter: blur(8px);
+      opacity: 0.6;
+    }
+
+    .candle {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 90px;
+      background: linear-gradient(to bottom, #f5f5dc 0%, #e8e8c8 40%, #d2d2a7 100%);
+      border-radius: 12px 12px 4px 4px;
+      box-shadow: 
+        inset -4px 0 8px rgba(0,0,0,0.2),
+        0 0 20px rgba(255, 200, 100, 0.3);
+      z-index: 2;
+    }
+
+    .wick {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3px;
+      height: 12px;
+      background: #333;
+      border-radius: 2px;
+    }
+
+    .flame {
+      position: absolute;
+      top: -44px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 48px;
+      background: radial-gradient(circle at 50% 30%, 
+        hsl(var(--flame-hue), 100%, 90%) 0%,
+        hsl(var(--flame-hue), 100%, 70%) 30%,
+        hsl(var(--flame-hue), 90%, 50%) 60%,
+        transparent 100%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      filter: blur(1px);
+      animation: flicker 1.2s infinite ease-in-out;
+      transform-origin: bottom center;
+      box-shadow: var(--shadow-depth) hsl(var(--flame-hue), 100%, 70%);
+      z-index: 3;
+    }
+
+    .flame::before {
+      content: '';
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 24px;
+      background: radial-gradient(circle, 
+        hsl(var(--flame-hue), 100%, 95%) 0%,
+        hsl(var(--flame-hue), 100%, 80%) 50%,
+        transparent 100%);
+      border-radius: 50%;
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+
+    .flame::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 16px;
+      background: linear-gradient(to top, 
+        hsl(var(--flame-hue), 100%, 60%), 
+        transparent);
+      border-radius: 50%;
+      filter: blur(4px);
+      opacity: 0.7;
+      animation: ember 2s infinite ease-out;
+    }
+
+    /* Subtle sanctuary ambiance */
+    .void {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, 
+        rgba(20, 15, 10, 0.3) 0%, 
+        transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .mote {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: hsl(var(--flame-hue), 80%, 80%);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      animation: float 4s infinite linear;
+    }
+
+    @keyframes flicker {
+      0%, 100% { 
+        transform: translateX(-50%) scale(1) rotate(-1deg); 
+        filter: blur(1px);
+        box-shadow: var(--shadow-depth) hsl(var(--flame-hue), 100%, 70%);
+      }
+      50% { 
+        transform: translateX(-50%) scale(1.15) rotate(1deg); 
+        filter: blur(1.5px);
+        box-shadow: var(--shadow-depth) hsl(var(--flame-hue), 100%, 85%);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.9; }
+      50% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+    }
+
+    @keyframes ember {
+      0% { transform: translateX(-50%) translateY(0); opacity: 0.7; }
+      100% { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: rotateX(1deg) rotateY(-1deg); }
+      50% { transform: rotateX(-1deg) rotateY(1deg); }
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 0; }
+      100% { transform: translateY(-300px) translateX(80px); opacity: 0; }
+    }
+
+    .whisper {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #444;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: appear 3s infinite ease-in-out;
+      animation-delay: 2s;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    @keyframes appear {
+      0%, 80%, 100% { opacity: 0; }
+      90% { opacity: 0.4; }
+    }
+  </style>
 </head>
 <body>
-<script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.168/build/three.module.js';
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0a0a);
+  <div class="sanctuary">
+    <div class="void"></div>
+    <div class="table"></div>
+    <div class="candle">
+      <div class="wick"></div>
+      <div class="flame"></div>
+    </div>
+    <div class="whisper">for the wanderer</div>
+  </div>
 
-const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 100);
-camera.position.set(0, 1.6, 5);
+  <script>
+    // Dust motes rising in the heat
+    const sanctuary = document.querySelector('.sanctuary');
+    const moteCount = 7;
 
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setSize(innerWidth, innerHeight);
-renderer.setAnimationLoop(animate);
-document.body.appendChild(renderer.domElement);
+    for (let i = 0; i < moteCount; i++) {
+      const mote = document.createElement('div');
+      mote.className = 'mote';
+      mote.style.left = `${45 + Math.random() * 10}%`;
+      mote.style.animationDelay = `${Math.random() * 3}s`;
+      mote.style.animationDuration = `${3 + Math.random() * 2}s`;
+      sanctuary.appendChild(mote);
+    }
 
-const light = new THREE.PointLight(0xffaa77, 1.5, 10);
-light.position.set(0, 2.5, 0);
-scene.add(light);
+    // Gentle hue drift over time
+    let hue = 35;
+    setInterval(() => {
+      hue = (hue + 0.05) % 60;
+      document.documentElement.style.setProperty('--flame-hue', hue);
+    }, 100);
+  </script>
 
-const ambient = new THREE.AmbientLight(0x404040, 0.2);
-scene.add(ambient);
-
-const roomGeo = new THREE.BoxGeometry(10, 6, 10);
-const roomMat = new THREE.MeshStandardMaterial({ color:0x222222, roughness:0.9 });
-const room = new THREE.Mesh(roomGeo, roomMat);
-scene.add(room);
-
-const chairGeo = new THREE.BoxGeometry(0.8, 0.9, 0.8);
-const chairMat = new THREE.MeshStandardMaterial({ color:0x3a2a1a });
-const chair = new THREE.Mesh(chairGeo, chairMat);
-chair.position.set(0, 0.45, -1);
-scene.add(chair);
-
-const candleGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.3, 16);
-const candleMat = new THREE.MeshStandardMaterial({ color:0xeeeecc });
-const candle = new THREE.Mesh(candleGeo, candleMat);
-candle.position.set(0, 1.35, -1);
-scene.add(candle);
-
-const flameGeo = new THREE.SphereGeometry(0.03, 8, 8);
-const flameMat = new THREE.MeshBasicMaterial({ color:0xffaa33 });
-const flame = new THREE.Mesh(flameGeo, flameMat);
-flame.position.set(0, 1.55, -1);
-scene.add(flame);
-
-let pulse = 0;
-function animate(t) {
-    pulse = (t % 777) / 777;
-    const s = 1 + 0.2 * Math.sin(pulse * Math.PI);
-    flame.scale.set(s, s, s);
-    light.intensity = 1.5 + 0.4 * Math.sin(pulse * Math.PI);
-    renderer.render(scene, camera);
-}
-
-addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-});
-</script>
 </body>
 </html>
